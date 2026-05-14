@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { createWorkflowExecution } from '@/lib/automation/workflows';
 import { WorkflowStep } from '@/types';
+import { Prisma } from '@prisma/client';
 
 // POST - Execute a workflow
 export async function POST(
@@ -53,8 +54,8 @@ export async function POST(
       where: { id: executionRecord.id },
       data: {
         status: execution.status === 'completed' ? 'COMPLETED' : 'FAILED',
-        output: execution.output,
-        logs: execution.logs,
+        output: execution.output as Prisma.InputJsonValue,
+        logs: execution.logs as Prisma.InputJsonValue,
         completedAt: new Date(),
       },
     });
