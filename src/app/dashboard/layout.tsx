@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { 
   Globe, 
   LayoutDashboard, 
@@ -13,7 +14,10 @@ import {
   Menu,
   X,
   Bell,
-  ChevronDown
+  ChevronDown,
+  LogIn,
+  LogOut,
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,7 +35,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session, status } = useSession();
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,12 +122,59 @@ export default function DashboardLayout({
                 </span>
               </button>
 
-              <button className="flex items-center gap-2 text-sm">
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">
-                  U
-                </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </button>
+              {/* User menu */}
+              <div className="relative">
+                <button 
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">
+                    {session?.user?.name?.[0]?.toUpperCase() || session?.user?.email?.[0]?.toUpperCase() || 'G'}
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </button>
+
+                {userMenuOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setUserMenuOpen(false)} 
+                    />
+                    <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-lg shadow-lg z-50">
+                      <div className="p-3 border-b border-border">
+                        {session?.user ? (
+                          <>
+                            <p className="font-medium truncate">{session.user.name || 'User'}</p>
+                            <p className="text-sm text-muted-foreground truncate">{session.user.email}</p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Guest Mode</p>
+                        )}
+                      </div>
+                      <div className="p-2">
+                        {session?.user ? (
+                          <button
+                            onClick={() => signOut({ callbackUrl: '/' })}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-secondary rounded-lg"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            Sign Out
+                          </button>
+                        ) : (
+                          <Link
+                            href="/auth/login"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary rounded-lg"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <LogIn className="h-4 w-4" />
+                            Sign In
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </header>

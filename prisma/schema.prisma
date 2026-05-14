@@ -10,10 +10,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User Authentication
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String    // Hashed password
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  jobs          ScrapeJob[]
+  workflows     Workflow[]
+}
+
 // Scraping Jobs
 model ScrapeJob {
   id          String   @id @default(cuid())
-  sessionId   String?  // Anonymous session ID for user isolation
+  userId      String?  // User who owns this job
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId   String?  // Fallback for anonymous users
   name        String
   description String?
   url         String
@@ -29,6 +44,7 @@ model ScrapeJob {
   workflow    Workflow? @relation(fields: [workflowId], references: [id])
   workflowId  String?
   
+  @@index([userId])
   @@index([sessionId])
 }
 
@@ -47,6 +63,8 @@ model ScrapeResult {
 // Workflow Automation
 model Workflow {
   id          String   @id @default(cuid())
+  userId      String?  // User who owns this workflow
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   description String?
   steps       Json     // Workflow steps configuration
@@ -57,6 +75,8 @@ model Workflow {
   
   jobs        ScrapeJob[]
   executions  WorkflowExecution[]
+  
+  @@index([userId])
 }
 
 model WorkflowExecution {

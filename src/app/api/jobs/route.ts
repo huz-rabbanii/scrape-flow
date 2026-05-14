@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { z } from 'zod';
-import { parseCronExpression, getNextExecutions } from '@/lib/automation/triggers';
-import { getSessionId } from '@/lib/session';
+import { parseCronExpression } from '@/lib/automation/triggers';
+import { getUserOrSessionId } from '@/lib/session';
 
 // Validation schemas
 const CreateJobSchema = z.object({
@@ -33,12 +33,13 @@ export async function GET(request: NextRequest) {
   const pageSize = parseInt(searchParams.get('pageSize') || '10');
 
   try {
-    const sessionId = await getSessionId();
+    const { userId, sessionId } = await getUserOrSessionId();
+    const ownerFilter = userId ? { userId } : { sessionId };
     
     if (id) {
       // Get single job with results (verify ownership)
       const job = await prisma.scrapeJob.findFirst({
-        where: { id, sessionId },
+        where: { id, ...ownerFilter },
         include: {
           results: {
             orderBy: { createdAt: 'desc' },
@@ -58,9 +59,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: job });
     }
 
-    // List jobs with pagination (filter by session)
+    // List jobs with pagination (filter by owner)
     const where = { 
-      sessionId,
+      ...ownerFilter,
       ...(status ? { status: status as string } : {}) 
     };
     
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
 // POST - Create new job
 export async function POST(request: NextRequest) {
   try {
-    const sessionId = await getSessionId();
+    const { userId, sessionId } = await getUserOrSessionId();
     const body = await request.json();
     const validated = CreateJobSchema.parse(body);
 
@@ -118,7 +119,8 @@ export async function POST(request: NextRequest) {
 
     const job = await prisma.scrapeJob.create({
       data: {
-        sessionId,
+        userId,
+        sessionId: userId ? undefined : sessionId, // Only use sessionId if not logged in
         name: validated.name,
         description: validated.description,
         url: validated.url,

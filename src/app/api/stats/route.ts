@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { startOfDay } from 'date-fns';
-import { getSessionId } from '@/lib/session';
+import { getUserOrSessionId } from '@/lib/session';
 
 // GET - Dashboard statistics
 export async function GET() {
   try {
-    const sessionId = await getSessionId();
+    const { userId, sessionId } = await getUserOrSessionId();
+    const ownerFilter = userId ? { userId } : { sessionId };
     const todayStart = startOfDay(new Date());
 
-    // Get job IDs for this session
-    const sessionJobs = await prisma.scrapeJob.findMany({
-      where: { sessionId },
+    // Get job IDs for this user/session
+    const userJobs = await prisma.scrapeJob.findMany({
+      where: ownerFilter,
       select: { id: true },
     });
-    const jobIds = sessionJobs.map(j => j.id);
+    const jobIds = userJobs.map(j => j.id);
 
     // Aggregate stats (filtered by session)
     const [
@@ -26,15 +27,15 @@ export async function GET() {
       avgDuration,
       recentResults,
     ] = await Promise.all([
-      // Total jobs for this session
-      prisma.scrapeJob.count({ where: { sessionId } }),
+      // Total jobs for this user/session
+      prisma.scrapeJob.count({ where: ownerFilter }),
       
-      // Active/scheduled jobs for this session
+      // Active/scheduled jobs
       prisma.scrapeJob.count({
-        where: { sessionId, status: { in: ['RUNNING', 'SCHEDULED'] } },
+        where: { ...ownerFilter, status: { in: ['RUNNING', 'SCHEDULED'] } },
       }),
       
-      // Completed today (for session's jobs)
+      // Completed today
       prisma.scrapeResult.count({
         where: {
           jobId: { in: jobIds },
