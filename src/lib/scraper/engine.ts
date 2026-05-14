@@ -1,6 +1,12 @@
 import * as cheerio from 'cheerio';
 import axios from 'axios';
+import https from 'https';
 import { SelectorConfig, ScrapedData, ScrapeOptions, ScrapeResult } from '@/types';
+
+// Create an https agent that ignores SSL certificate errors
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 export class ScrapingEngine {
   private userAgents = [
@@ -30,6 +36,7 @@ export class ScrapingEngine {
       maxRedirects: 5,
       timeout: options.timeout || 30000,
       validateStatus: (status) => status < 400,
+      httpsAgent,
     });
     
     return response.data;
