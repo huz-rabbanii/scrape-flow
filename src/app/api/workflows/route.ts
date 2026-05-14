@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { createWorkflowExecution, WorkflowEngine } from '@/lib/automation/workflows';
 import { WorkflowStep, WorkflowTrigger } from '@/types';
 
@@ -95,8 +96,8 @@ export async function POST(request: NextRequest) {
       data: {
         name: validated.name,
         description: validated.description,
-        steps: validated.steps,
-        triggers: validated.triggers,
+        steps: validated.steps as unknown as Prisma.InputJsonValue,
+        triggers: validated.triggers as unknown as Prisma.InputJsonValue,
         status: 'ACTIVE',
       },
     });
@@ -139,8 +140,8 @@ export async function PUT(request: NextRequest) {
       data: {
         ...(validated.name && { name: validated.name }),
         ...(validated.description !== undefined && { description: validated.description }),
-        ...(validated.steps && { steps: validated.steps }),
-        ...(validated.triggers && { triggers: validated.triggers }),
+        ...(validated.steps && { steps: validated.steps as unknown as Prisma.InputJsonValue }),
+        ...(validated.triggers && { triggers: validated.triggers as unknown as Prisma.InputJsonValue }),
       },
     });
 

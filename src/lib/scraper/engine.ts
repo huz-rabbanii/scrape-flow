@@ -61,7 +61,7 @@ export class ScrapingEngine {
 
   private extractValue(
     $: cheerio.CheerioAPI, 
-    element: cheerio.Cheerio<cheerio.Element>, 
+    element: cheerio.Cheerio<cheerio.AnyNode>, 
     selector: SelectorConfig
   ): string | null {
     if (!element.length) {

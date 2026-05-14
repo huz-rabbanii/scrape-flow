@@ -1,4 +1,4 @@
-import { WorkflowStep, WorkflowExecution, WorkflowLog } from '@/types';
+import { WorkflowStep, WorkflowExecution, WorkflowLog, SelectorConfig } from '@/types';
 import { scraper } from '@/lib/scraper/engine';
 import axios from 'axios';
 
@@ -99,7 +99,7 @@ export class WorkflowEngine {
     // Resolve URL from context if it's a reference
     const resolvedUrl = this.resolveValue(url) as string;
     
-    const result = await scraper.scrape(resolvedUrl, selectors, options);
+    const result = await scraper.scrape(resolvedUrl, selectors as SelectorConfig[], options);
     return result;
   }
 
@@ -135,7 +135,7 @@ export class WorkflowEngine {
 
       case 'unique':
         if (Array.isArray(data)) {
-          return [...new Set(data)];
+          return Array.from(new Set(data));
         }
         return data;
 

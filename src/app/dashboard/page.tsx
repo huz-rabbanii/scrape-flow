@@ -221,11 +221,11 @@ export default function DashboardPage() {
                     {formatDate(item.timestamp)}
                   </p>
                 </div>
-                {item.metadata?.duration && (
+                {(item.metadata as Record<string, unknown>)?.duration ? (
                   <span className="text-xs text-muted-foreground">
-                    {formatDuration(item.metadata.duration as number)}
+                    {formatDuration((item.metadata as Record<string, unknown>).duration as number)}
                   </span>
-                )}
+                ) : null}
               </div>
             ))}
           </div>

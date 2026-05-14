@@ -54,8 +54,8 @@ export async function POST(
       where: { id: executionRecord.id },
       data: {
         status: execution.status === 'completed' ? 'COMPLETED' : 'FAILED',
-        output: execution.output as Prisma.InputJsonValue,
-        logs: execution.logs as Prisma.InputJsonValue,
+        output: execution.output as unknown as Prisma.InputJsonValue,
+        logs: execution.logs as unknown as Prisma.InputJsonValue,
         completedAt: new Date(),
       },
     });
