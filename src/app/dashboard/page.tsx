@@ -10,7 +10,8 @@ import {
   TrendingUp,
   Plus,
   Play,
-  RefreshCw
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 import { formatDate, formatDuration } from '@/lib/utils';
 
@@ -35,6 +36,8 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activity, setActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoResult, setDemoResult] = useState<{ success: boolean; data?: Record<string, unknown>; error?: string } | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -55,6 +58,37 @@ export default function DashboardPage() {
     }
   }
 
+  async function runDemo() {
+    setDemoLoading(true);
+    setDemoResult(null);
+    
+    try {
+      const response = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: 'http://quotes.toscrape.com',
+          selectors: [
+            { name: 'quotes', selector: '.quote .text', extract: 'text', multiple: true },
+            { name: 'authors', selector: '.quote .author', extract: 'text', multiple: true },
+            { name: 'tags', selector: '.quote .tags .tag', extract: 'text', multiple: true },
+          ],
+          options: { includeMetadata: true }
+        }),
+      });
+      
+      const data = await response.json();
+      setDemoResult(data);
+    } catch (error) {
+      setDemoResult({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Demo failed' 
+      });
+    } finally {
+      setDemoLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -71,14 +105,72 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">Overview of your scraping operations</p>
         </div>
-        <Link
-          href="/dashboard/jobs/new"
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          New Job
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={runDemo}
+            disabled={demoLoading}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition flex items-center gap-2 disabled:opacity-50"
+          >
+            {demoLoading ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            Try Demo
+          </button>
+          <Link
+            href="/dashboard/jobs/new"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Job
+          </Link>
+        </div>
       </div>
+
+      {/* Demo Result */}
+      {demoResult && (
+        <div className={`bg-card border rounded-xl p-6 ${demoResult.success ? 'border-green-500/50' : 'border-red-500/50'}`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              {demoResult.success ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-500" />
+              )}
+              <h3 className="font-semibold">
+                Demo Scrape: {demoResult.success ? 'Success!' : 'Failed'}
+              </h3>
+            </div>
+            <button
+              onClick={() => setDemoResult(null)}
+              className="text-muted-foreground hover:text-foreground text-sm"
+            >
+              Dismiss
+            </button>
+          </div>
+          
+          {demoResult.success && demoResult.data ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Scraped from <span className="text-foreground font-mono">quotes.toscrape.com</span>
+              </p>
+              <div className="bg-muted/50 rounded-lg p-4 max-h-64 overflow-auto">
+                <pre className="text-xs text-foreground whitespace-pre-wrap">
+                  {JSON.stringify(demoResult.data, null, 2)}
+                </pre>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Found {(demoResult.data.quotes as string[] | undefined)?.length || 0} quotes, {' '}
+                {(demoResult.data.authors as string[] | undefined)?.length || 0} authors, {' '}
+                {(demoResult.data.tags as string[] | undefined)?.length || 0} tags
+              </p>
+            </div>
+          ) : (
+            <p className="text-red-400 text-sm">{demoResult.error}</p>
+          )}
+        </div>
+      )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

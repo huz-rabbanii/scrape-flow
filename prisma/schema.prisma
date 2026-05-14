@@ -13,6 +13,7 @@ datasource db {
 // Scraping Jobs
 model ScrapeJob {
   id          String   @id @default(cuid())
+  sessionId   String?  // Anonymous session ID for user isolation
   name        String
   description String?
   url         String
@@ -27,6 +28,8 @@ model ScrapeJob {
   results     ScrapeResult[]
   workflow    Workflow? @relation(fields: [workflowId], references: [id])
   workflowId  String?
+  
+  @@index([sessionId])
 }
 
 model ScrapeResult {

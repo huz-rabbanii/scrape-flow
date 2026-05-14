@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { z } from 'zod';
 import { parseCronExpression, getNextExecutions } from '@/lib/automation/triggers';
+import { getSessionId } from '@/lib/session';
 
 // Validation schemas
 const CreateJobSchema = z.object({
@@ -32,10 +33,12 @@ export async function GET(request: NextRequest) {
   const pageSize = parseInt(searchParams.get('pageSize') || '10');
 
   try {
+    const sessionId = await getSessionId();
+    
     if (id) {
-      // Get single job with results
-      const job = await prisma.scrapeJob.findUnique({
-        where: { id },
+      // Get single job with results (verify ownership)
+      const job = await prisma.scrapeJob.findFirst({
+        where: { id, sessionId },
         include: {
           results: {
             orderBy: { createdAt: 'desc' },
@@ -55,8 +58,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: job });
     }
 
-    // List jobs with pagination
-    const where = status ? { status: status as any } : {};
+    // List jobs with pagination (filter by session)
+    const where = { 
+      sessionId,
+      ...(status ? { status: status as string } : {}) 
+    };
     
     const [jobs, total] = await Promise.all([
       prisma.scrapeJob.findMany({
@@ -93,6 +99,7 @@ export async function GET(request: NextRequest) {
 // POST - Create new job
 export async function POST(request: NextRequest) {
   try {
+    const sessionId = await getSessionId();
     const body = await request.json();
     const validated = CreateJobSchema.parse(body);
 
@@ -111,6 +118,7 @@ export async function POST(request: NextRequest) {
 
     const job = await prisma.scrapeJob.create({
       data: {
+        sessionId,
         name: validated.name,
         description: validated.description,
         url: validated.url,

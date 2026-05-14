@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { startOfDay, subDays } from 'date-fns';
+import { startOfDay } from 'date-fns';
+import { getSessionId } from '@/lib/session';
 
 // GET - Dashboard statistics
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const now = new Date();
-    const todayStart = startOfDay(now);
-    const last7Days = subDays(now, 7);
+    const sessionId = await getSessionId();
+    const todayStart = startOfDay(new Date());
 
-    // Aggregate stats
+    // Get job IDs for this session
+    const sessionJobs = await prisma.scrapeJob.findMany({
+      where: { sessionId },
+      select: { id: true },
+    });
+    const jobIds = sessionJobs.map(j => j.id);
+
+    // Aggregate stats (filtered by session)
     const [
       totalJobs,
       activeJobs,
@@ -18,62 +25,53 @@ export async function GET(request: NextRequest) {
       totalResults,
       avgDuration,
       recentResults,
-      dailyStats,
     ] = await Promise.all([
-      // Total jobs
-      prisma.scrapeJob.count(),
+      // Total jobs for this session
+      prisma.scrapeJob.count({ where: { sessionId } }),
       
-      // Active/scheduled jobs
+      // Active/scheduled jobs for this session
       prisma.scrapeJob.count({
-        where: { status: { in: ['RUNNING', 'SCHEDULED'] } },
+        where: { sessionId, status: { in: ['RUNNING', 'SCHEDULED'] } },
       }),
       
-      // Completed today
+      // Completed today (for session's jobs)
       prisma.scrapeResult.count({
         where: {
+          jobId: { in: jobIds },
           createdAt: { gte: todayStart },
           status: 'SUCCESS',
         },
       }),
       
-      // Failed today
+      // Failed today (for session's jobs)
       prisma.scrapeResult.count({
         where: {
+          jobId: { in: jobIds },
           createdAt: { gte: todayStart },
           status: 'FAILED',
         },
       }),
       
-      // Total data points
-      prisma.scrapeResult.count(),
+      // Total data points (for session's jobs)
+      prisma.scrapeResult.count({
+        where: { jobId: { in: jobIds } },
+      }),
       
-      // Average duration
+      // Average duration (for session's jobs)
       prisma.scrapeResult.aggregate({
+        where: { jobId: { in: jobIds } },
         _avg: { duration: true },
       }),
       
-      // Recent results
+      // Recent results (for session's jobs)
       prisma.scrapeResult.findMany({
+        where: { jobId: { in: jobIds } },
         orderBy: { createdAt: 'desc' },
         take: 10,
         include: {
           job: { select: { name: true } },
         },
       }),
-      
-      // Daily stats for last 7 days
-      prisma.$queryRaw`
-        SELECT 
-          DATE(created_at) as date,
-          COUNT(*) as total,
-          SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) as success,
-          SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) as failed,
-          AVG(duration) as avg_duration
-        FROM "ScrapeResult"
-        WHERE created_at >= ${last7Days}
-        GROUP BY DATE(created_at)
-        ORDER BY date DESC
-      `.catch(() => []), // Fallback if raw query fails
     ]);
 
     // Build recent activity
@@ -100,7 +98,6 @@ export async function GET(request: NextRequest) {
           avgResponseTime: Math.round(avgDuration._avg?.duration || 0),
         },
         recentActivity,
-        dailyStats,
       },
     });
   } catch (error) {
