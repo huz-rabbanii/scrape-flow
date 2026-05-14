@@ -21,6 +21,11 @@ export class ScrapingEngine {
   }
 
   async fetchPage(url: string, options: ScrapeOptions = {}): Promise<string> {
+    const { data } = await this.fetchRaw(url, options);
+    return typeof data === 'string' ? data : JSON.stringify(data);
+  }
+
+  private async fetchRaw(url: string, options: ScrapeOptions = {}): Promise<{ data: unknown; isJson: boolean }> {
     const headers = {
       'User-Agent': options.userAgent || this.getRandomUserAgent(),
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -38,8 +43,75 @@ export class ScrapingEngine {
       validateStatus: (status) => status < 400,
       httpsAgent,
     });
-    
-    return response.data;
+
+    const contentType = (response.headers['content-type'] as string) || '';
+    const isJson = contentType.includes('application/json') ||
+      (typeof response.data === 'object' && response.data !== null && !Buffer.isBuffer(response.data));
+
+    return { data: response.data, isJson };
+  }
+
+  extractJsonData(json: unknown, selectors: SelectorConfig[]): ScrapedData {
+    const result: ScrapedData = {};
+
+    // If no selectors provided, return the whole JSON flattened
+    if (selectors.length === 0) {
+      result['data'] = JSON.stringify(json);
+      return result;
+    }
+
+    for (const selector of selectors) {
+      try {
+        const value = this.resolveJsonPath(json, selector.selector);
+        result[selector.name] = value ?? selector.default ?? null;
+      } catch {
+        result[selector.name] = selector.default ?? null;
+      }
+    }
+
+    return result;
+  }
+
+  private resolveJsonPath(data: unknown, path: string): string | string[] | null {
+    // [*].field  — array wildcard
+    const wildcardMatch = path.match(/^\[\*\]\.(.+)$/);
+    if (wildcardMatch) {
+      if (!Array.isArray(data)) return null;
+      return data
+        .map(item => {
+          const v = this.getNestedValue(item, wildcardMatch[1]);
+          return v !== null && v !== undefined ? String(v) : null;
+        })
+        .filter((v): v is string => v !== null);
+    }
+
+    // [n].field  — array index
+    const indexMatch = path.match(/^\[(\d+)\]\.(.+)$/);
+    if (indexMatch) {
+      if (!Array.isArray(data)) return null;
+      const item = (data as unknown[])[parseInt(indexMatch[1])];
+      if (item === undefined) return null;
+      const v = this.getNestedValue(item, indexMatch[2]);
+      return v !== null && v !== undefined ? String(v) : null;
+    }
+
+    // [*]  — whole array as strings
+    if (path === '[*]') {
+      if (!Array.isArray(data)) return null;
+      return data.map(item => (typeof item === 'object' ? JSON.stringify(item) : String(item)));
+    }
+
+    // Direct dot-notation path
+    const value = this.getNestedValue(data, path);
+    if (Array.isArray(value)) return value.map(item => (typeof item === 'object' ? JSON.stringify(item) : String(item)));
+    return value !== null && value !== undefined ? String(value) : null;
+  }
+
+  private getNestedValue(obj: unknown, path: string): unknown {
+    return path.split('.').reduce((current, key) => {
+      if (current === null || current === undefined) return undefined;
+      return (current as Record<string, unknown>)[key];
+    }, obj);
   }
 
   extractData(html: string, selectors: SelectorConfig[]): ScrapedData {
@@ -227,9 +299,22 @@ export class ScrapingEngine {
 
   async scrape(url: string, selectors: SelectorConfig[], options: ScrapeOptions = {}): Promise<ScrapeResult> {
     const startTime = Date.now();
-    
+
     try {
-      const html = await this.fetchPage(url, options);
+      const { data: rawData, isJson } = await this.fetchRaw(url, options);
+
+      if (isJson) {
+        const data = this.extractJsonData(rawData, selectors);
+        return {
+          success: true,
+          data,
+          metadata: options.includeMetadata ? { title: null, description: null, keywords: null, author: null, image: null, canonical: url, favicon: null, note: 'JSON API response — no HTML metadata' } : undefined,
+          duration: Date.now() - startTime,
+          timestamp: new Date().toISOString(),
+        };
+      }
+
+      const html = typeof rawData === 'string' ? rawData : JSON.stringify(rawData);
       const data = this.extractData(html, selectors);
       const metadata = options.includeMetadata ? this.extractMetadata(html, url) : undefined;
       const links = options.includeLinks ? this.extractLinks(html, url) : undefined;
