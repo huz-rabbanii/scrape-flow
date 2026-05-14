@@ -183,7 +183,7 @@ export async function PUT(request: NextRequest) {
         ...(validated.name && { name: validated.name }),
         ...(validated.description !== undefined && { description: validated.description }),
         ...(validated.url && { url: validated.url }),
-        ...(validated.selectors && { selectors: validated.selectors as any }),
+        ...(validated.selectors && { selectors: JSON.stringify(validated.selectors) }),
         ...(validated.schedule !== undefined && { 
           schedule: validated.schedule,
           status: validated.schedule ? 'SCHEDULED' : 'PENDING',

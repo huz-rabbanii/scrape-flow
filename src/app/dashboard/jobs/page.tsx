@@ -13,7 +13,8 @@ import {
   XCircle,
   AlertCircle,
   RefreshCw,
-  MoreVertical
+  MoreVertical,
+  Pencil
 } from 'lucide-react';
 import { formatDate, formatDuration } from '@/lib/utils';
 
@@ -200,6 +201,13 @@ export default function JobsPage() {
                           title="View details"
                         >
                           <ExternalLink className="h-4 w-4" />
+                        </Link>
+                        <Link
+                          href={`/dashboard/jobs/${job.id}/edit`}
+                          className="p-2 hover:bg-secondary rounded-lg transition"
+                          title="Edit job"
+                        >
+                          <Pencil className="h-4 w-4 text-blue-500" />
                         </Link>
                         <button
                           onClick={() => deleteJob(job.id)}
