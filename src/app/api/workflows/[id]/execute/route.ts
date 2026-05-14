@@ -44,7 +44,7 @@ export async function POST(
     });
 
     // Execute workflow
-    const steps = workflow.steps as WorkflowStep[];
+    const steps = workflow.steps as unknown as WorkflowStep[];
     const engine = createWorkflowExecution(id, input);
     const execution = await engine.execute(steps);
 

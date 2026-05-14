@@ -30,7 +30,7 @@ export async function POST(
     });
 
     // Execute scrape
-    const selectors = job.selectors as SelectorConfig[];
+    const selectors = job.selectors as unknown as SelectorConfig[];
     const result = await scraper.scrape(job.url, selectors, { includeMetadata: true });
 
     // Save result
