@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Scraping Jobs
+model ScrapeJob {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  url         String
+  selectors   String   // JSON string - CSS selectors configuration
+  schedule    String?  // Cron expression for scheduling
+  status      String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED, PAUSED, SCHEDULED
+  lastRunAt   DateTime?
+  nextRunAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  results     ScrapeResult[]
+  workflow    Workflow? @relation(fields: [workflowId], references: [id])
+  workflowId  String?
+}
+
+model ScrapeResult {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       ScrapeJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  data      String   // JSON string - Extracted data
+  metadata  String?  // JSON string - Page metadata, timing info
+  status    String   @default("SUCCESS") // SUCCESS, PARTIAL, FAILED
+  error     String?
+  duration  Int      // Duration in milliseconds
+  createdAt DateTime @default(now())
+}
+
+// Workflow Automation
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  steps       String   // JSON string - Workflow steps configuration
+  triggers    String   // JSON string - Trigger configuration
+  status      String   @default("ACTIVE") // ACTIVE, PAUSED, ARCHIVED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  jobs        ScrapeJob[]
+  executions  WorkflowExecution[]
+}
+
+model WorkflowExecution {
+  id          String    @id @default(cuid())
+  workflowId  String
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  status      String    @default("RUNNING") // RUNNING, COMPLETED, FAILED, CANCELLED
+  input       String?   // JSON string
+  output      String?   // JSON string
+  logs        String    @default("[]") // JSON string
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+// API Keys for external integrations
+model ApiKey {
+  id        String    @id @default(cuid())
+  name      String
+  key       String    @unique
+  scopes    String    @default("read,write") // Comma-separated
+  lastUsed  DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+// Webhook configurations
+model Webhook {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  events    String   @default("") // Comma-separated events
+  secret    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
