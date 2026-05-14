@@ -182,6 +182,49 @@ export class ScrapingEngine {
     return images;
   }
 
+  private formatError(error: unknown): string {
+    if (!(error instanceof Error)) return 'Unknown error occurred';
+    
+    const message = error.message.toLowerCase();
+    
+    // SSL/Certificate errors
+    if (message.includes('certificate') || message.includes('ssl') || message.includes('tls')) {
+      return `SSL Certificate Error: ${error.message}. Try using HTTP instead of HTTPS, or the site may have an invalid certificate.`;
+    }
+    
+    // Timeout errors
+    if (message.includes('timeout') || message.includes('etimedout')) {
+      return `Request Timeout: The website took too long to respond. Try again later or check if the URL is accessible.`;
+    }
+    
+    // Connection errors
+    if (message.includes('econnrefused') || message.includes('enotfound')) {
+      return `Connection Failed: Could not connect to the website. Check if the URL is correct and the site is online.`;
+    }
+    
+    // 403 Forbidden
+    if (message.includes('403') || message.includes('forbidden')) {
+      return `Access Denied (403): The website blocked the request. It may have anti-bot protection.`;
+    }
+    
+    // 404 Not Found
+    if (message.includes('404') || message.includes('not found')) {
+      return `Page Not Found (404): The URL doesn't exist. Check if the URL is correct.`;
+    }
+    
+    // Rate limiting
+    if (message.includes('429') || message.includes('too many')) {
+      return `Rate Limited (429): Too many requests. Wait a few minutes before trying again.`;
+    }
+    
+    // Generic HTTP errors
+    if (message.includes('status code')) {
+      return `HTTP Error: ${error.message}. The website returned an error response.`;
+    }
+    
+    return error.message;
+  }
+
   async scrape(url: string, selectors: SelectorConfig[], options: ScrapeOptions = {}): Promise<ScrapeResult> {
     const startTime = Date.now();
     
@@ -205,7 +248,7 @@ export class ScrapingEngine {
       return {
         success: false,
         data: {},
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: this.formatError(error),
         duration: Date.now() - startTime,
         timestamp: new Date().toISOString(),
       };
