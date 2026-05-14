@@ -1,43 +1,71 @@
-# ScrapeFlow
+<div align="center">
 
-**Automated Data Extraction and Workflow Automation System**
+# 🕷️ ScrapeFlow
 
-A modern, full-stack web scraping platform built with Next.js 14, designed for developers and businesses who need reliable data extraction at scale. Deploy on Vercel with one click.
+### Automated Data Extraction & Workflow Automation
 
-![ScrapeFlow Dashboard](https://via.placeholder.com/800x400?text=ScrapeFlow+Dashboard)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-## Features
+<p align="center">
+  <strong>A modern, full-stack web scraping platform built for developers and businesses who need reliable data extraction at scale.</strong>
+</p>
 
-- **Visual Selector Builder** - Point and click to select elements
-- **Pre-built Templates** - Ready-to-use selectors for common use cases (products, articles, contacts, etc.)
-- **Workflow Automation** - Chain scraping jobs with transforms, filters, and webhooks
-- **Scheduled Jobs** - Cron-based scheduling for recurring scrapes
-- **REST API** - Full API access for integration
-- **Dashboard** - Real-time monitoring and analytics
-- **Export Options** - JSON, CSV, XML output formats
+[🚀 Demo](#) • [📖 Documentation](#api-documentation) • [🐛 Report Bug](https://github.com/huz-rabbanii/scrape-flow/issues) • [✨ Request Feature](https://github.com/huz-rabbanii/scrape-flow/issues)
 
-## Tech Stack
+</div>
 
-- **Frontend**: Next.js 14, React 18, TailwindCSS
-- **Backend**: Next.js API Routes (Serverless)
-- **Database**: PostgreSQL with Prisma ORM
-- **Scraping**: Cheerio for HTML parsing
-- **Scheduling**: Vercel Cron Jobs
-- **Deployment**: Vercel
+---
 
-## Quick Start
+## ✨ Features
 
-### Prerequisites
+| Feature | Description |
+|---------|-------------|
+| 🎯 **Visual Selector Builder** | Point and click to select elements with ease |
+| 📦 **Pre-built Templates** | Ready-to-use selectors for products, articles, contacts & more |
+| ⚡ **Workflow Automation** | Chain scraping jobs with transforms, filters, and webhooks |
+| ⏰ **Scheduled Jobs** | Cron-based scheduling for recurring scrapes |
+| 🔌 **REST API** | Full API access for seamless integration |
+| 📊 **Dashboard** | Real-time monitoring and analytics |
+| 📁 **Export Options** | JSON, CSV, XML output formats |
 
-- Node.js 18+
-- PostgreSQL database (or use Vercel Postgres)
-- npm or yarn
+---
 
-### Installation
+## 🛠️ Tech Stack
+
+<div align="center">
+
+| Category | Technology |
+|----------|------------|
+| 🎨 **Frontend** | Next.js 14 • React 18 • TailwindCSS |
+| ⚙️ **Backend** | Next.js API Routes (Serverless) |
+| 🗄️ **Database** | SQLite / PostgreSQL • Prisma ORM |
+| 🔍 **Scraping** | Cheerio • Axios |
+| ⏱️ **Scheduling** | Vercel Cron Jobs |
+| ☁️ **Deployment** | Vercel |
+
+</div>
+
+---
+
+## 🚀 Quick Start
+
+### 📋 Prerequisites
+
+```
+✅ Node.js 18+
+✅ npm or yarn
+✅ SQLite (default) or PostgreSQL
+```
+
+### 📥 Installation
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/huz-rabbanii/scrape-flow.git
 cd scrape-flow
 
 # Install dependencies
@@ -45,9 +73,6 @@ npm install
 
 # Set up environment variables
 cp .env.example .env
-
-# Update .env with your database URL
-# DATABASE_URL="postgresql://..."
 
 # Generate Prisma client and push schema
 npm run db:generate
@@ -57,32 +82,39 @@ npm run db:push
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+🎉 Open [http://localhost:3000](http://localhost:3000) in your browser!
 
-## Deploy to Vercel
+---
 
-### One-Click Deploy
+## ☁️ Deploy to Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/scrape-flow)
+### 🔘 One-Click Deploy
 
-### Manual Deploy
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/huz-rabbanii/scrape-flow)
 
-1. Push your code to GitHub
-2. Import project in Vercel
-3. Add environment variables:
+### 📝 Manual Deploy
+
+1. 📤 Push your code to GitHub
+2. 📦 Import project in Vercel
+3. 🔐 Add environment variables:
    - `DATABASE_URL` - Your PostgreSQL connection string
    - `CRON_SECRET` - Secret for cron endpoint authentication
-4. Deploy!
+4. 🚀 Deploy!
 
-### Setting up Vercel Postgres
+<details>
+<summary>💾 Setting up Vercel Postgres</summary>
 
 1. Go to your Vercel project dashboard
-2. Click "Storage" → "Create Database" → "Postgres"
+2. Click **Storage** → **Create Database** → **Postgres**
 3. Copy the connection string to your environment variables
 
-## API Documentation
+</details>
 
-### Quick Scrape
+---
+
+## 📖 API Documentation
+
+### ⚡ Quick Scrape
 
 ```bash
 # GET - Quick scrape with template
@@ -101,18 +133,18 @@ curl -X POST "https://your-app.vercel.app/api/scrape" \
   }'
 ```
 
-### Available Templates
+### 📋 Available Templates
 
 | Template | Description | Fields |
-|----------|-------------|--------|
-| `metadata` | Page metadata | title, description, keywords, ogImage |
-| `product` | E-commerce product | title, price, description, image, rating |
-| `article` | News/blog article | title, author, date, content, tags |
-| `contact` | Contact information | email, phone, address, social |
-| `job` | Job listing | title, company, location, salary, description |
-| `property` | Real estate | title, price, address, beds, baths, sqft |
+|:--------:|-------------|--------|
+| 📄 `metadata` | Page metadata | title, description, keywords, ogImage |
+| 🛒 `product` | E-commerce product | title, price, description, image, rating |
+| 📰 `article` | News/blog article | title, author, date, content, tags |
+| 📞 `contact` | Contact information | email, phone, address, social |
+| 💼 `job` | Job listing | title, company, location, salary, description |
+| 🏠 `property` | Real estate | title, price, address, beds, baths, sqft |
 
-### Jobs API
+### 📦 Jobs API
 
 ```bash
 # Create a job
@@ -135,7 +167,7 @@ curl -X POST "https://your-app.vercel.app/api/jobs/{id}/run"
 curl -X DELETE "https://your-app.vercel.app/api/jobs?id={id}"
 ```
 
-### Workflows API
+### 🔄 Workflows API
 
 ```bash
 # Create a workflow
@@ -173,75 +205,108 @@ curl -X POST "https://your-app.vercel.app/api/workflows" \
 curl -X POST "https://your-app.vercel.app/api/workflows/{id}/execute"
 ```
 
-## Workflow Step Types
+---
 
-| Type | Description |
-|------|-------------|
-| `scrape` | Fetch and extract data from URL |
-| `transform` | Apply transformations (map, sort, filter, etc.) |
-| `filter` | Filter data based on conditions |
-| `merge` | Combine multiple data sources |
-| `split` | Split data into chunks or groups |
-| `webhook` | Send HTTP request |
-| `delay` | Wait for specified duration |
-| `condition` | Branch based on conditions |
-| `loop` | Iterate over array items |
+## ⚙️ Workflow Step Types
 
-## Project Structure
+| Type | Icon | Description |
+|:----:|:----:|-------------|
+| `scrape` | 🔍 | Fetch and extract data from URL |
+| `transform` | 🔄 | Apply transformations (map, sort, filter) |
+| `filter` | 🎯 | Filter data based on conditions |
+| `merge` | 🔗 | Combine multiple data sources |
+| `split` | ✂️ | Split data into chunks or groups |
+| `webhook` | 🌐 | Send HTTP request |
+| `delay` | ⏳ | Wait for specified duration |
+| `condition` | ❓ | Branch based on conditions |
+| `loop` | 🔁 | Iterate over array items |
+
+---
+
+## 📁 Project Structure
 
 ```
-scrape-flow/
-├── prisma/
+📦 scrape-flow/
+├── 📁 prisma/
 │   └── schema.prisma      # Database schema
-├── src/
-│   ├── app/
-│   │   ├── api/           # API routes
-│   │   │   ├── scrape/    # Scraping endpoint
-│   │   │   ├── jobs/      # Jobs CRUD
-│   │   │   ├── workflows/ # Workflows CRUD
-│   │   │   └── cron/      # Scheduled jobs runner
-│   │   ├── dashboard/     # Dashboard pages
+├── 📁 src/
+│   ├── 📁 app/
+│   │   ├── 📁 api/           # API routes
+│   │   │   ├── 📁 scrape/    # Scraping endpoint
+│   │   │   ├── 📁 jobs/      # Jobs CRUD
+│   │   │   ├── 📁 workflows/ # Workflows CRUD
+│   │   │   └── 📁 cron/      # Scheduled jobs runner
+│   │   ├── 📁 dashboard/     # Dashboard pages
 │   │   └── page.tsx       # Landing page
-│   ├── components/        # React components
-│   ├── lib/
-│   │   ├── scraper/       # Scraping engine
-│   │   ├── automation/    # Workflow engine
+│   ├── 📁 components/        # React components
+│   ├── 📁 lib/
+│   │   ├── 📁 scraper/       # Scraping engine
+│   │   ├── 📁 automation/    # Workflow engine
 │   │   ├── db.ts          # Database client
 │   │   └── utils.ts       # Utilities
-│   └── types/             # TypeScript types
+│   └── 📁 types/             # TypeScript types
 ├── vercel.json            # Vercel configuration
 └── package.json
 ```
 
-## Environment Variables
+---
+
+## 🔐 Environment Variables
 
 | Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `CRON_SECRET` | Secret for cron authentication | Recommended |
-| `NEXT_PUBLIC_APP_URL` | Public app URL | No |
-
-## Limitations & Considerations
-
-### Vercel Serverless Limits
-- Function timeout: 10s (Hobby) / 60s (Pro)
-- Memory: 1024MB (Hobby) / 3008MB (Pro)
-- Payload size: 4.5MB
-
-### For Heavy Scraping
-If you need to scrape JavaScript-rendered pages or handle heavy loads:
-1. Use a headless browser service (Browserless, ScrapingBee)
-2. Deploy scraping workers on Railway/Render
-3. Use ScrapeFlow as the orchestration layer
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines.
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
+|:--------:|-------------|:--------:|
+| `DATABASE_URL` | SQLite/PostgreSQL connection string | ✅ |
+| `CRON_SECRET` | Secret for cron authentication | ⚠️ |
+| `NEXT_PUBLIC_APP_URL` | Public app URL | ❌ |
 
 ---
 
-Built with Next.js • Deploy on Vercel
+## ⚠️ Limitations & Considerations
+
+### 🔸 Vercel Serverless Limits
+
+| Limit | Hobby | Pro |
+|-------|:-----:|:---:|
+| ⏱️ Function timeout | 10s | 60s |
+| 💾 Memory | 1024MB | 3008MB |
+| 📦 Payload size | 4.5MB | 4.5MB |
+
+### 🔧 For Heavy Scraping
+
+> If you need to scrape JavaScript-rendered pages or handle heavy loads:
+
+1. 🌐 Use a headless browser service (Browserless, ScrapingBee)
+2. 🚂 Deploy scraping workers on Railway/Render
+3. 🎯 Use ScrapeFlow as the orchestration layer
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guidelines.
+
+1. 🍴 Fork the repository
+2. 🌿 Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. 💾 Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. 📤 Push to the branch (`git push origin feature/AmazingFeature`)
+5. 🔃 Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+
+---
+
+<div align="center">
+
+### 💖 Built with Love
+
+**Next.js** • **Prisma** • **TailwindCSS** • **Cheerio**
+
+⭐ Star this repo if you find it helpful!
+
+[Report Bug](https://github.com/huz-rabbanii/scrape-flow/issues) • [Request Feature](https://github.com/huz-rabbanii/scrape-flow/issues)
+
+</div>
