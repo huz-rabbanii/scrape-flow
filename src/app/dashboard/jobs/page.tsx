@@ -144,6 +144,7 @@ export default function JobsPage() {
                 <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Name</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground">Status</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground hidden md:table-cell">Last Run</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground hidden md:table-cell">Next Run</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-muted-foreground hidden lg:table-cell">Results</th>
                 <th className="text-right px-6 py-3 text-sm font-medium text-muted-foreground">Actions</th>
               </tr>
@@ -177,6 +178,15 @@ export default function JobsPage() {
                       <span className="text-sm text-muted-foreground">
                         {job.lastRunAt ? formatDate(job.lastRunAt) : 'Never'}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 hidden md:table-cell">
+                      {job.nextRunAt ? (
+                        <span className="text-sm text-purple-400">
+                          {formatDate(job.nextRunAt)}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 hidden lg:table-cell">
                       <span className="text-sm">{job._count?.results ?? 0}</span>
