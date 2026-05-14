@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
       data: {
         name: validated.name,
         description: validated.description,
-        steps: JSON.stringify(validated.steps),
-        triggers: JSON.stringify(validated.triggers),
+        steps: validated.steps,
+        triggers: validated.triggers,
         status: 'ACTIVE',
       },
     });
@@ -139,8 +139,8 @@ export async function PUT(request: NextRequest) {
       data: {
         ...(validated.name && { name: validated.name }),
         ...(validated.description !== undefined && { description: validated.description }),
-        ...(validated.steps && { steps: JSON.stringify(validated.steps) }),
-        ...(validated.triggers && { triggers: JSON.stringify(validated.triggers) }),
+        ...(validated.steps && { steps: validated.steps }),
+        ...(validated.triggers && { triggers: validated.triggers }),
       },
     });
 

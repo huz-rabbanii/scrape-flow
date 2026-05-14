@@ -51,17 +51,8 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Parse JSON fields
-      const parsedJob = {
-        ...job,
-        selectors: JSON.parse(job.selectors),
-        results: job.results.map(r => ({
-          ...r,
-          data: JSON.parse(r.data),
-          metadata: r.metadata ? JSON.parse(r.metadata) : null,
-        })),
-      };
-      return NextResponse.json({ success: true, data: parsedJob });
+      // Return job directly - PostgreSQL handles JSON natively
+      return NextResponse.json({ success: true, data: job });
     }
 
     // List jobs with pagination
@@ -123,7 +114,7 @@ export async function POST(request: NextRequest) {
         name: validated.name,
         description: validated.description,
         url: validated.url,
-        selectors: JSON.stringify(validated.selectors),
+        selectors: validated.selectors,
         schedule: validated.schedule,
         status: validated.schedule ? 'SCHEDULED' : 'PENDING',
         nextRunAt,
@@ -183,7 +174,7 @@ export async function PUT(request: NextRequest) {
         ...(validated.name && { name: validated.name }),
         ...(validated.description !== undefined && { description: validated.description }),
         ...(validated.url && { url: validated.url }),
-        ...(validated.selectors && { selectors: JSON.stringify(validated.selectors) }),
+        ...(validated.selectors && { selectors: validated.selectors }),
         ...(validated.schedule !== undefined && { 
           schedule: validated.schedule || null,
           status: validated.schedule ? 'SCHEDULED' : 'PENDING',

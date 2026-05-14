@@ -38,13 +38,13 @@ export async function POST(
       data: {
         workflowId: id,
         status: 'RUNNING',
-        input: JSON.stringify(input),
-        logs: '[]',
+        input: input,
+        logs: [],
       },
     });
 
     // Execute workflow
-    const steps = JSON.parse(workflow.steps) as WorkflowStep[];
+    const steps = workflow.steps as WorkflowStep[];
     const engine = createWorkflowExecution(id, input);
     const execution = await engine.execute(steps);
 
@@ -53,8 +53,8 @@ export async function POST(
       where: { id: executionRecord.id },
       data: {
         status: execution.status === 'completed' ? 'COMPLETED' : 'FAILED',
-        output: JSON.stringify(execution.output),
-        logs: JSON.stringify(execution.logs),
+        output: execution.output,
+        logs: execution.logs,
         completedAt: new Date(),
       },
     });

@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
       await prisma.scrapeResult.create({
         data: {
           jobId: validated.jobId,
-          data: JSON.stringify(result.data),
-          metadata: JSON.stringify(result.metadata || {}),
+          data: result.data,
+          metadata: result.metadata || {},
           status: result.success ? 'SUCCESS' : 'FAILED',
           error: result.error,
           duration: result.duration,

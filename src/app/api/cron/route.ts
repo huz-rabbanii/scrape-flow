@@ -42,15 +42,15 @@ export async function GET(request: NextRequest) {
         });
 
         // Execute scrape
-        const selectors = JSON.parse(job.selectors) as SelectorConfig[];
+        const selectors = job.selectors as SelectorConfig[];
         const result = await scraper.scrape(job.url, selectors, { includeMetadata: true });
 
         // Save result
         await prisma.scrapeResult.create({
           data: {
             jobId: job.id,
-            data: JSON.stringify(result.data),
-            metadata: JSON.stringify(result.metadata || {}),
+            data: result.data,
+            metadata: result.metadata || {},
             status: result.success ? 'SUCCESS' : 'FAILED',
             error: result.error,
             duration: result.duration,
