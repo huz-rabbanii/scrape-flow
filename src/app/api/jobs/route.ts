@@ -17,7 +17,7 @@ const CreateJobSchema = z.object({
     transform: z.string().optional(),
     default: z.string().optional(),
   })),
-  schedule: z.string().optional(),
+  schedule: z.string().nullable().optional(),
   workflowId: z.string().optional(),
 });
 
@@ -185,9 +185,9 @@ export async function PUT(request: NextRequest) {
         ...(validated.url && { url: validated.url }),
         ...(validated.selectors && { selectors: JSON.stringify(validated.selectors) }),
         ...(validated.schedule !== undefined && { 
-          schedule: validated.schedule,
+          schedule: validated.schedule || null,
           status: validated.schedule ? 'SCHEDULED' : 'PENDING',
-          nextRunAt,
+          nextRunAt: validated.schedule ? nextRunAt : null,
         }),
       },
     });
