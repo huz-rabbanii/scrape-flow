@@ -14,7 +14,7 @@
   <strong>A modern, full-stack web scraping platform built for developers and businesses who need reliable data extraction at scale.</strong>
 </p>
 
-[🚀 Demo](#) • [📖 Documentation](#api-documentation) • [🐛 Report Bug](https://github.com/huz-rabbanii/scrape-flow/issues) • [✨ Request Feature](https://github.com/huz-rabbanii/scrape-flow/issues)
+[🚀 Live Demo](https://scrape-flow-1nr6.vercel.app/) • [📖 Documentation](#api-documentation) • [🐛 Report Bug](https://github.com/huz-rabbanii/scrape-flow/issues) • [✨ Request Feature](https://github.com/huz-rabbanii/scrape-flow/issues)
 
 </div>
 
@@ -34,7 +34,20 @@
 
 ---
 
-## 🛠️ Tech Stack
+## � Screenshots
+
+**Landing Page**
+![Landing Page](res/Screenshot%202026-05-15%20050709.png)
+
+**Dashboard**
+![Dashboard](res/Screenshot%202026-05-15%20050729.png)
+
+**Demo Scrape Result**
+![Demo Scrape](res/Screenshot%202026-05-15%20050740.png)
+
+---
+
+## �🛠️ Tech Stack
 
 <div align="center">
 
