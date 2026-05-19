@@ -10,7 +10,11 @@ import {
   Globe,
   Code,
   Clock,
-  Save
+  Save,
+  CheckCircle,
+  XCircle,
+  Play,
+  RefreshCw
 } from 'lucide-react';
 import { SELECTOR_TEMPLATES } from '@/lib/scraper/selectors';
 import { CRON_PRESETS, describeCron } from '@/lib/automation/triggers';
@@ -21,6 +25,13 @@ interface Selector {
   extract: 'text' | 'html' | 'attribute';
   attribute?: string;
   multiple?: boolean;
+}
+
+interface ScrapeResult {
+  success: boolean;
+  data?: Record<string, unknown>;
+  error?: string;
+  duration?: number;
 }
 
 export default function NewJobPage() {
@@ -36,6 +47,8 @@ export default function NewJobPage() {
   ]);
   const [enableSchedule, setEnableSchedule] = useState(false);
   const [schedule, setSchedule] = useState('0 * * * *');
+  const [scrapeResult, setScrapeResult] = useState<ScrapeResult | null>(null);
+  const [createdJobId, setCreatedJobId] = useState<string | null>(null);
 
   function addSelector() {
     setSelectors([...selectors, { name: '', selector: '', extract: 'text' }]);
@@ -54,9 +67,11 @@ export default function NewJobPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setScrapeResult(null);
 
     try {
-      const response = await fetch('/api/jobs', {
+      // Step 1: Create the job
+      const createResponse = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -68,15 +83,30 @@ export default function NewJobPage() {
         }),
       });
 
-      const data = await response.json();
-      if (data.success) {
-        router.push('/dashboard/jobs');
-      } else {
-        alert(`Error: ${data.error}`);
+      const createData = await createResponse.json();
+      if (!createData.success) {
+        alert(`Error: ${createData.error}`);
+        return;
       }
+
+      const jobId = createData.data.id;
+      setCreatedJobId(jobId);
+
+      // Step 2: Immediately run the scrape (same as Try Demo)
+      const runResponse = await fetch(`/api/jobs/${jobId}/run`, {
+        method: 'POST',
+      });
+
+      const runData = await runResponse.json();
+      setScrapeResult({
+        success: runData.success,
+        data: runData.data?.data,
+        error: runData.error || runData.data?.error,
+        duration: runData.data?.duration,
+      });
     } catch (error) {
       console.error('Failed to create job:', error);
-      alert('Failed to create job');
+      setScrapeResult({ success: false, error: 'Failed to create and run job' });
     } finally {
       setLoading(false);
     }
@@ -311,11 +341,79 @@ export default function NewJobPage() {
             disabled={loading}
             className="flex-1 bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Save className="h-4 w-4" />
-            {loading ? 'Creating...' : 'Create Job'}
+            {loading ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Creating & Running...
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" />
+                Create & Run Job
+              </>
+            )}
           </button>
         </div>
       </form>
+
+      {/* Scrape Result (shown after job creation + run) */}
+      {scrapeResult && (
+        <div className={`mt-6 bg-card border rounded-xl p-6 ${scrapeResult.success ? 'border-green-500/50' : 'border-red-500/50'}`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              {scrapeResult.success ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-500" />
+              )}
+              <h3 className="font-semibold">
+                Scrape Result: {scrapeResult.success ? 'Success!' : 'Failed'}
+              </h3>
+              {scrapeResult.duration && (
+                <span className="text-xs text-muted-foreground ml-2">{scrapeResult.duration}ms</span>
+              )}
+            </div>
+            <button
+              onClick={() => setScrapeResult(null)}
+              className="text-muted-foreground hover:text-foreground text-sm"
+            >
+              Dismiss
+            </button>
+          </div>
+
+          {scrapeResult.success && scrapeResult.data ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Scraped from <span className="text-foreground font-mono">{url}</span>
+              </p>
+              <div className="bg-muted/50 rounded-lg p-4 max-h-64 overflow-auto">
+                <pre className="text-xs text-foreground whitespace-pre-wrap">
+                  {JSON.stringify(scrapeResult.data, null, 2)}
+                </pre>
+              </div>
+            </div>
+          ) : (
+            <p className="text-red-400 text-sm">{scrapeResult.error}</p>
+          )}
+
+          <div className="flex gap-3 mt-4">
+            <button
+              onClick={() => router.push('/dashboard/jobs')}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition text-sm"
+            >
+              View All Jobs
+            </button>
+            {createdJobId && (
+              <button
+                onClick={() => router.push(`/dashboard/jobs/${createdJobId}`)}
+                className="border border-border px-4 py-2 rounded-lg hover:bg-secondary transition text-sm"
+              >
+                View This Job
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
